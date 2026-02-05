@@ -72,14 +72,14 @@ export const useInputBuffer = () => {
 
     // 4. Reading Controls (Alt + Key)
     if (e.altKey) {
-      if (key === 'r') {
+      if (e.code === 'KeyR') {
         // Read All
         e.preventDefault();
         const fullText = tokens.map(t => t.content).join('');
-        audioService.speak('Reading all: ' + fullText);
+        audioService.speak('Reading all: ' + fullText, 'en-US');
         return;
       }
-      if (key === 'l') {
+      if (e.code === 'KeyL') {
         // Read Last Token
         e.preventDefault();
         if (tokens.length > 0) {
@@ -90,7 +90,7 @@ export const useInputBuffer = () => {
         }
         return;
       }
-      if (key === 's') {
+      if (e.code === 'KeyS') {
         // Read Status (Buffer)
         e.preventDefault();
         if (buffer) {

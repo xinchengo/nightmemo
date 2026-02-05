@@ -28,7 +28,7 @@ function App() {
     const overlay = document.getElementById('start-overlay');
     if (overlay) overlay.style.display = 'none';
     audioService.playTypeSound(); // Initialize audio context
-    audioService.speak("Night Memo Ready. Start typing.");
+    audioService.speak("Night Memo Ready. Start typing.", "en-US");
   };
 
   return (

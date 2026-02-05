@@ -7,6 +7,7 @@ type PinyinMode = 'mark' | 'number';
 function App() {
   const { buffer, tokens, handleKeyDown, clearTokens } = useInputBuffer();
   const [showSettings, setShowSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(true);
   const [pinyinMode, setPinyinMode] = useState<PinyinMode>(() => {
     return (localStorage.getItem('nightmemo_pinyin_mode') as PinyinMode) || 'mark';
   });
@@ -18,6 +19,16 @@ function App() {
   // Combine input handler with settings toggle
   useEffect(() => {
     const handleGlobalKey = (e: KeyboardEvent) => {
+      // Toggle Help with Alt+H or ? (Shift+/)
+      if ((e.altKey && e.code === 'KeyH') || (e.shiftKey && e.key === '?')) {
+        e.preventDefault();
+        setShowHelp(prev => !prev);
+        if (!showHelp) {
+           audioService.speak("Help opened", "en-US");
+        }
+        return;
+      }
+
       if (e.code === 'Escape') {
         e.preventDefault();
         setShowSettings(prev => !prev);
@@ -29,7 +40,7 @@ function App() {
         return;
       }
       
-      if (!showSettings) {
+      if (!showSettings && !showHelp) {
         handleKeyDown(e);
       }
     };
@@ -38,11 +49,10 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleGlobalKey);
     };
-  }, [handleKeyDown, showSettings]);
+  }, [handleKeyDown, showSettings, showHelp]);
 
   const handleStart = () => {
-    const overlay = document.getElementById('start-overlay');
-    if (overlay) overlay.style.display = 'none';
+    setShowHelp(false);
     audioService.playTypeSound(); // Initialize audio context
     audioService.speak("Night Memo Ready. Start typing.", "en-US");
   };
@@ -56,25 +66,27 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-gray-300 p-8 font-mono text-xl leading-loose selection:bg-gray-700">
+    <div className="min-h-screen bg-black text-gray-300 p-8 font-mono text-xl leading-loose selection:bg-gray-700 relative">
       
-      {/* Start Overlay */}
-      <div id="start-overlay" 
-           onClick={handleStart}
-           className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 cursor-pointer">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4 text-white">Night Memo</h1>
-          <p className="mb-8">Click anywhere to start</p>
-          <div className="text-sm text-gray-500 text-left max-w-md mx-auto space-y-2">
-            <p>• Type letters [a-z] to fill buffer.</p>
-            <p>• Press [0-4] to confirm Pinyin with Tone.</p>
-            <p>• Press [5-9] to confirm English word.</p>
-            <p>• Backspace to delete char or last token.</p>
-            <p>• Alt+R: Read All | Alt+L: Read Last | Alt+S: Read Buffer</p>
-            <p>• ESC: Settings / Menu</p>
+      {/* Start/Help Overlay */}
+      {showHelp && (
+        <div id="start-overlay" 
+             onClick={handleStart}
+             className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 cursor-pointer">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4 text-white">Night Memo</h1>
+            <p className="mb-8">Click anywhere to start</p>
+            <div className="text-sm text-gray-500 text-left max-w-md mx-auto space-y-2">
+              <p>• Type letters [a-z] to fill buffer.</p>
+              <p>• Press [0-4] to confirm Pinyin with Tone.</p>
+              <p>• Press [5-9] to confirm English word.</p>
+              <p>• Backspace to delete char or last token.</p>
+              <p>• Alt+R: Read All | Alt+L: Read Last | Alt+S: Read Buffer</p>
+              <p>• ESC: Settings | Alt+H or ?: Toggle Help</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Settings Overlay */}
       {showSettings && (
@@ -134,8 +146,14 @@ function App() {
       </div>
 
       {/* Status Footer */}
-      <div className="fixed bottom-4 right-4 text-xs text-gray-700">
-        Buffer: {buffer.length} | Tokens: {tokens.length} | Mode: {pinyinMode}
+      <div className="fixed bottom-4 right-4 text-xs text-gray-700 flex gap-4">
+        <span>Buffer: {buffer.length} | Tokens: {tokens.length} | Mode: {pinyinMode}</span>
+        <button 
+          onClick={() => setShowHelp(true)}
+          className="hover:text-gray-500 underline"
+        >
+          Help (?)
+        </button>
       </div>
     </div>
   );

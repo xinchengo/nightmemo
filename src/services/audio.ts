@@ -74,6 +74,15 @@ class AudioService {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
+    
+    // Attempt to find a matching voice
+    const voices = this.synth.getVoices();
+    const matchingVoice = voices.find(v => v.lang.includes(lang.replace('-', '_')) || v.lang.includes(lang));
+    
+    if (matchingVoice) {
+      utterance.voice = matchingVoice;
+    }
+
     utterance.rate = 1.0;
     this.synth.speak(utterance);
   }

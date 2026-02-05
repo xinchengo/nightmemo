@@ -1,28 +1,44 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useInputBuffer } from './hooks/useInputBuffer';
 import { audioService } from './services/audio';
 
-function App() {
-  const { buffer, tokens, handleKeyDown } = useInputBuffer();
-  
-  // Ref to hold the current handleKeyDown so we can use it in the event listener
-  // without constantly removing/adding the listener if we didn't want to.
-  // However, since handleKeyDown changes when state changes, we actually DO need to update the listener.
-  // The standard React pattern is useEffect with dependency.
-  
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown]);
+type PinyinMode = 'mark' | 'number';
 
-  // Initial greeting
+function App() {
+  const { buffer, tokens, handleKeyDown, clearTokens } = useInputBuffer();
+  const [showSettings, setShowSettings] = useState(false);
+  const [pinyinMode, setPinyinMode] = useState<PinyinMode>(() => {
+    return (localStorage.getItem('nightmemo_pinyin_mode') as PinyinMode) || 'mark';
+  });
+
   useEffect(() => {
-    // Small delay to allow interaction first, but usually browsers block auto-audio.
-    // We can't auto-play. We need user interaction.
-    // We'll show a "Click to Start" overlay.
-  }, []);
+    localStorage.setItem('nightmemo_pinyin_mode', pinyinMode);
+  }, [pinyinMode]);
+  
+  // Combine input handler with settings toggle
+  useEffect(() => {
+    const handleGlobalKey = (e: KeyboardEvent) => {
+      if (e.code === 'Escape') {
+        e.preventDefault();
+        setShowSettings(prev => !prev);
+        if (!showSettings) {
+           audioService.speak("Settings opened", "en-US");
+        } else {
+           audioService.speak("Settings closed", "en-US");
+        }
+        return;
+      }
+      
+      if (!showSettings) {
+        handleKeyDown(e);
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKey);
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKey);
+    };
+  }, [handleKeyDown, showSettings]);
 
   const handleStart = () => {
     const overlay = document.getElementById('start-overlay');
@@ -31,10 +47,18 @@ function App() {
     audioService.speak("Night Memo Ready. Start typing.", "en-US");
   };
 
+  const handleClear = () => {
+    if (confirm("Clear all text?")) {
+      clearTokens();
+      setShowSettings(false);
+      audioService.speak("Document cleared", "en-US");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-gray-300 p-8 font-mono text-xl leading-loose selection:bg-gray-700">
       
-      {/* Start Overlay for Audio Context */}
+      {/* Start Overlay */}
       <div id="start-overlay" 
            onClick={handleStart}
            className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 cursor-pointer">
@@ -47,18 +71,59 @@ function App() {
             <p>• Press [5-9] to confirm English word.</p>
             <p>• Backspace to delete char or last token.</p>
             <p>• Alt+R: Read All | Alt+L: Read Last | Alt+S: Read Buffer</p>
+            <p>• ESC: Settings / Menu</p>
           </div>
         </div>
       </div>
 
+      {/* Settings Overlay */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-40">
+          <div className="bg-gray-900 border border-gray-700 p-8 rounded-lg max-w-sm w-full space-y-6">
+            <h2 className="text-2xl text-white mb-4">Settings</h2>
+            
+            <div className="space-y-4">
+              <button 
+                onClick={() => setPinyinMode(prev => prev === 'mark' ? 'number' : 'mark')}
+                className="w-full py-3 px-4 bg-gray-800 hover:bg-gray-700 rounded text-left flex justify-between items-center"
+              >
+                <span>Pinyin Display</span>
+                <span className="text-blue-400">{pinyinMode === 'mark' ? 'Tone Marks' : 'Numbers'}</span>
+              </button>
+
+              <button 
+                onClick={handleClear}
+                className="w-full py-3 px-4 bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded text-left"
+              >
+                Clear Document
+              </button>
+
+              <button 
+                onClick={() => setShowSettings(false)}
+                className="w-full py-3 px-4 bg-gray-800 hover:bg-gray-700 rounded text-center mt-4"
+              >
+                Close (ESC)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Editor Area */}
-      <div className="max-w-4xl mx-auto min-h-[80vh] whitespace-pre-wrap break-words">
+      <div className={`max-w-4xl mx-auto min-h-[80vh] whitespace-pre-wrap break-words ${showSettings ? 'blur-sm' : ''}`}>
         {/* Render Committed Tokens */}
-        {tokens.map((token) => (
-          <span key={token.id} className={token.type === 'pinyin' ? 'text-white' : 'text-blue-300'}>
-            {token.content}
-          </span>
-        ))}
+        {tokens.map((token) => {
+          let display = token.content;
+          if (pinyinMode === 'number' && token.type === 'pinyin' && token.tone !== undefined) {
+             display = token.raw + token.tone + ' ';
+          }
+          
+          return (
+            <span key={token.id} className={token.type === 'pinyin' ? 'text-white' : 'text-blue-300'}>
+              {display}
+            </span>
+          );
+        })}
         
         {/* Render Active Buffer */}
         <span className="inline-block bg-gray-800 text-yellow-400 px-1 ml-1 rounded min-w-[10px] min-h-[1.5em] align-middle">
@@ -68,9 +133,9 @@ function App() {
         </span>
       </div>
 
-      {/* Status Footer (Visual Aid for non-blind usage/debugging) */}
+      {/* Status Footer */}
       <div className="fixed bottom-4 right-4 text-xs text-gray-700">
-        Buffer: {buffer.length} | Tokens: {tokens.length}
+        Buffer: {buffer.length} | Tokens: {tokens.length} | Mode: {pinyinMode}
       </div>
     </div>
   );

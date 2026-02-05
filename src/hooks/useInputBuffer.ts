@@ -5,7 +5,25 @@ import { convertToPinyin } from '../utils/pinyin';
 
 export const useInputBuffer = () => {
   const [buffer, setBuffer] = useState<string>('');
-  const [tokens, setTokens] = useState<Token[]>([]);
+  const [tokens, setTokens] = useState<Token[]>(() => {
+    try {
+      const saved = localStorage.getItem('nightmemo_tokens');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Failed to load tokens", e);
+      return [];
+    }
+  });
+
+  // Persistence
+  useEffect(() => {
+    localStorage.setItem('nightmemo_tokens', JSON.stringify(tokens));
+  }, [tokens]);
+
+  const clearTokens = useCallback(() => {
+    setTokens([]);
+    setBuffer('');
+  }, []);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Prevent default browser actions for handled keys
@@ -120,6 +138,7 @@ export const useInputBuffer = () => {
   return {
     buffer,
     tokens,
-    handleKeyDown
+    handleKeyDown,
+    clearTokens
   };
 };

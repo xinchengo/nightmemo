@@ -103,8 +103,14 @@ export const useInputBuffer = () => {
       if (e.code === 'KeyR') {
         // Read All
         e.preventDefault();
-        const fullText = tokens.map(t => t.content).join('');
-        audioService.speak('Reading all: ' + fullText, 'en-US');
+        const fullText = tokens.map(t => {
+          if (t.type === 'pinyin' && t.tone !== undefined) {
+             return t.raw.replace(/v/g, 'ü') + t.tone + ' ';
+          }
+          return t.content;
+        }).join('');
+        // Use zh-CN to support mixed content reading, especially for pinyin tones
+        audioService.speak('Reading all: ' + fullText, 'zh-CN');
         return;
       }
       if (e.code === 'KeyL') {
@@ -112,7 +118,11 @@ export const useInputBuffer = () => {
         e.preventDefault();
         if (tokens.length > 0) {
           const last = tokens[tokens.length - 1];
-          audioService.speak('Last entry: ' + last.content);
+          let textToRead = last.content;
+          if (last.type === 'pinyin' && last.tone !== undefined) {
+             textToRead = last.raw.replace(/v/g, 'ü') + last.tone;
+          }
+          audioService.speak('Last entry: ' + textToRead, 'zh-CN');
         } else {
           audioService.playErrorSound();
         }

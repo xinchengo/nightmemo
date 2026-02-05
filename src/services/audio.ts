@@ -74,21 +74,6 @@ class AudioService {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
-
-    // Explicitly find and set voice if available
-    // This is critical because setting .lang alone is often ignored by browsers 
-    // if the previously used voice (e.g. en-US from startup) is still active.
-    const voices = this.synth.getVoices();
-    if (voices.length > 0) {
-      // Simple lookup: Exact match or Prefix match (zh-CN matching zh_CN or zh)
-      const targetVoice = voices.find(v => v.lang === lang) || 
-                          voices.find(v => v.lang.replace('_', '-').startsWith(lang.split('-')[0]));
-      
-      if (targetVoice) {
-        utterance.voice = targetVoice;
-      }
-    }
-
     utterance.rate = 1.0;
     this.synth.speak(utterance);
   }

@@ -74,7 +74,10 @@ export const useInputBuffer = () => {
         setBuffer('');
         audioService.playConfirmPinyinSound();
         // Speak the pinyin
-        audioService.speak(displayPinyin, 'zh-CN');
+        // Use tone 0 (no tone marks) for TTS compatibility
+        // TTS engines often fail to pronounce pinyin with tone marks correctly
+        // We rely on the chord sound (playConfirmPinyinSound) and user's memory for tone confirmation
+        audioService.speak(convertToPinyin(buffer, 0), 'zh-CN');
       }
       // 5-9: English Word
       else if (numKey >= 5 && numKey <= 9) {

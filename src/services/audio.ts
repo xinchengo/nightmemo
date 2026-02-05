@@ -1,6 +1,27 @@
 class AudioService {
   private audioContext: AudioContext | null = null;
   private synth: SpeechSynthesis = window.speechSynthesis;
+  private voices: SpeechSynthesisVoice[] = [];
+  private voicesLoaded: boolean = false;
+
+  constructor() {
+    // Attempt to load voices immediately
+    this.loadVoices();
+    
+    // Some browsers load voices asynchronously
+    if (this.synth.onvoiceschanged !== undefined) {
+      this.synth.onvoiceschanged = () => {
+        this.loadVoices();
+      };
+    }
+  }
+
+  private loadVoices() {
+    this.voices = this.synth.getVoices();
+    if (this.voices.length > 0) {
+      this.voicesLoaded = true;
+    }
+  }
 
   private initContext() {
     if (!this.audioContext) {
@@ -67,6 +88,34 @@ class AudioService {
 
   // --- TTS ---
 
+  private getVoice(lang: string): SpeechSynthesisVoice | undefined {
+    if (!this.voicesLoaded) {
+      this.loadVoices();
+    }
+
+    // Exact match first
+    let voice = this.voices.find(v => v.lang === lang);
+    if (voice) return voice;
+
+    // Partial match (e.g. zh-CN matching zh)
+    voice = this.voices.find(v => v.lang.startsWith(lang) || lang.startsWith(v.lang));
+    if (voice) return voice;
+
+    // Special handling for Chinese
+    if (lang.includes('zh')) {
+      // Try to find any Chinese voice
+      return this.voices.find(v => 
+        v.lang.includes('zh') || 
+        v.lang.includes('CN') || 
+        v.lang.includes('TW') || 
+        v.lang.includes('HK') ||
+        v.name.includes('Chinese')
+      );
+    }
+    
+    return undefined;
+  }
+
   public speak(text: string, lang: 'zh-CN' | 'en-US' = 'zh-CN') {
     if (this.synth.speaking) {
       this.synth.cancel();
@@ -75,12 +124,9 @@ class AudioService {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
     
-    // Attempt to find a matching voice
-    const voices = this.synth.getVoices();
-    const matchingVoice = voices.find(v => v.lang.includes(lang.replace('-', '_')) || v.lang.includes(lang));
-    
-    if (matchingVoice) {
-      utterance.voice = matchingVoice;
+    const voice = this.getVoice(lang);
+    if (voice) {
+      utterance.voice = voice;
     }
 
     utterance.rate = 1.0;

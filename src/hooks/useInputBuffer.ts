@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { Token } from '../types';
 import { audioService } from '../services/audio';
 import { convertToPinyin } from '../utils/pinyin';

@@ -1,73 +1,71 @@
-# React + TypeScript + Vite
+# Night Memo 🌑
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一个专为黑暗环境设计的单文档、听觉反馈优先的中文编辑应用。
 
-Currently, two official plugins are available:
+Night Memo 旨在让人们能够在完全黑暗的环境中（或闭眼状态下）拥有流畅的中文编辑体验。它摒弃了复杂的视觉界面，转而依赖丰富的听觉反馈和极简的操作逻辑。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ 核心特性
 
-## React Compiler
+*   **听觉优先 (Audio-First)**: 所有的输入、确认、删除操作都有独特的音效反馈。
+*   **盲打友好**:
+    *   **a-z**: 输入拼音或英文缓冲。
+    *   **0-4**: 确认拼音（0=轻声, 1=一声, 2=二声, 3=三声, 4=四声）。
+    *   **5-9**: 确认英文单词。
+*   **实时朗读 (TTS)**: 确认输入后，系统会自动朗读刚刚输入的中文或英文。
+    *   *注：拼音朗读已优化，支持 v -> ü 的自动转换，并能准确朗读声调。*
+*   **极致暗黑模式**: 纯黑背景 (#000000) 配微光文字，最低限度的屏幕光污染。
+*   **数据持久化**: 内容自动保存到本地，刷新不丢失。
+*   **辅助阅读**:
+    *   `Alt + R`: 朗读全文
+    *   `Alt + L`: 朗读上一个词
+    *   `Alt + S`: 朗读当前缓冲区
+*   **设置与帮助**:
+    *   `Alt + H` 或 `?`: 显示/隐藏帮助
+    *   `ESC`: 打开设置菜单（切换拼音显示模式、清空文档）
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 快速开始
 
-## Expanding the ESLint configuration
+### 本地运行
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1.  克隆项目
+    ```bash
+    git clone https://github.com/xinchengo/nightmemo.git
+    cd nightmemo
+    ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+2.  安装依赖
+    ```bash
+    npm install
+    ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+3.  启动开发服务器
+    ```bash
+    npm run dev
+    ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 在线体验
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+访问: [https://xinchengo.github.io/nightmemo/](https://xinchengo.github.io/nightmemo/)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🛠️ 技术栈
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+*   React + TypeScript
+*   Vite
+*   TailwindCSS
+*   Web Audio API (Oscillator Sound Effects)
+*   Web Speech API (Text-to-Speech)
+
+## 📝 操作指南
+
+1.  **启动**: 点击屏幕任意位置以激活音频引擎。
+2.  **输入拼音**:
+    *   输入 `hao` -> 按 `3` -> 屏幕显示 `hǎo` -> 听到 "hǎo"。
+    *   输入 `nv` -> 按 `3` -> 屏幕显示 `nǚ` -> 听到 "nǚ"。
+3.  **输入英文**:
+    *   输入 `hello` -> 按 `5` -> 屏幕显示 `hello ` -> 听到 "hello"。
+4.  **修改**:
+    *   `Backspace`: 缓冲区有内容时删字符；缓冲区为空时删上一个词。
+
+## 📄 License
+
+MIT

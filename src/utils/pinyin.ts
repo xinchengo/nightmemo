@@ -25,8 +25,6 @@ export function convertToPinyin(input: string, tone: number): string {
   // If none, then i, u, ü. 
   // Exception: iu, ui -> tone on the last letter.
   
-  const vowels = ['a', 'o', 'e', 'i', 'u', 'ü'];
-  
   let charToToneIndex = -1;
 
   if (text.includes('a')) charToToneIndex = text.indexOf('a');

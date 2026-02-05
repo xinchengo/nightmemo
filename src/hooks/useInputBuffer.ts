@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import type { Token } from '../types';
 import { audioService } from '../services/audio';
+import { convertToPinyin } from '../utils/pinyin';
 
 export const useInputBuffer = () => {
   const [buffer, setBuffer] = useState<string>('');
@@ -39,7 +40,10 @@ export const useInputBuffer = () => {
       // 0-4: Pinyin with Tone
       if (numKey >= 0 && numKey <= 4) {
         const tone = numKey;
-        const content = buffer + tone;
+        // Convert buffer (raw pinyin) + tone to display format
+        const displayPinyin = convertToPinyin(buffer, tone);
+        const content = displayPinyin + ' '; // Add space for separation
+        
         const newToken: Token = {
           id: Date.now().toString(),
           content: content,
@@ -51,7 +55,8 @@ export const useInputBuffer = () => {
         setTokens(prev => [...prev, newToken]);
         setBuffer('');
         audioService.playConfirmPinyinSound();
-        audioService.speak(content, 'zh-CN');
+        // Speak the pinyin
+        audioService.speak(displayPinyin, 'zh-CN');
       }
       // 5-9: English Word
       else if (numKey >= 5 && numKey <= 9) {

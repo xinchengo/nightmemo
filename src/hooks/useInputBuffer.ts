@@ -73,10 +73,13 @@ export const useInputBuffer = () => {
         setTokens(prev => [...prev, newToken]);
         setBuffer('');
         audioService.playConfirmPinyinSound();
-        // Speak the pinyin
-        // We use the display pinyin (with tones) for TTS.
-        // Modern TTS engines (like Google, Apple) usually handle tone marks correctly if the voice is correct.
-        audioService.speak(displayPinyin, 'zh-CN');
+        
+        // Speak: Use "raw pinyin + digit" (e.g. "hao3") for TTS, but handle 'v' -> 'ü'
+        // This ensures the TTS engine pronounces the correct tone as per user feedback,
+        // while solving the issue where 'v' isn't pronounced as 'ü'.
+        const ttsPinyin = buffer.replace(/v/g, 'ü');
+        const ttsText = ttsPinyin + tone;
+        audioService.speak(ttsText, 'zh-CN');
       }
       // 5-9: English Word
       else if (numKey >= 5 && numKey <= 9) {

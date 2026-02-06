@@ -4,7 +4,11 @@ class AudioService {
 
   private initContext() {
     if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextCtor =
+        window.AudioContext ||
+        (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextCtor) return;
+      this.audioContext = new AudioContextCtor();
     }
     if (this.audioContext.state === 'suspended') {
       this.audioContext.resume();

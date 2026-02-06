@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TTS Playground</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        padding: 24px;
+        background: #0b0b0b;
+        color: #e5e5e5;
+      }
+      h1 {
+        font-size: 20px;
+        margin-bottom: 12px;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      button, select, input {
+        background: #1a1a1a;
+        color: #e5e5e5;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 180px;
+        background: #121212;
+        color: #cfcfcf;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 10px;
+        font-size: 12px;
+      }
+      .label {
+        font-size: 12px;
+        color: #a3a3a3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>最小 TTS 验证</h1>
+    <div class="row">
+      <button id="speak-wo3">朗读 wo3</button>
+      <button id="speak-wo">朗读 wǒ</button>
+      <button id="speak-wo-char">朗读 我</button>
+      <button id="speak-en">朗读 hello</button>
+    </div>
+    <div class="row">
+      <select id="lang">
+        <option value="zh-CN">zh-CN</option>
+        <option value="en-US">en-US</option>
+      </select>
+      <select id="voice"></select>
+      <input id="rate" type="number" min="0.5" max="2" step="0.1" value="1" />
+      <input id="pitch" type="number" min="0" max="2" step="0.1" value="1" />
+    </div>
+    <div class="row">
+      <input id="voice-filter" type="text" placeholder="voice 正则过滤 (如 zh|ting|com)" />
+      <button id="clear-filter">清除过滤</button>
+    </div>
+    <div class="row">
+      <input id="custom-text" type="text" value="wo3" />
+      <button id="speak-custom">朗读自定义</button>
+    </div>
+    <div class="label">voices 列表</div>
+    <textarea id="voices-output" readonly></textarea>
+    <script>
+      const synth = window.speechSynthesis;
+      const voiceSelect = document.getElementById('voice');
+      const langSelect = document.getElementById('lang');
+      const rateInput = document.getElementById('rate');
+      const pitchInput = document.getElementById('pitch');
+      const voicesOutput = document.getElementById('voices-output');
+      const customText = document.getElementById('custom-text');
+      const voiceFilterInput = document.getElementById('voice-filter');
+      const clearFilterButton = document.getElementById('clear-filter');
+      let voices = [];
+
+      function getVoiceMatcher() {
+        const raw = voiceFilterInput.value.trim();
+        if (!raw) return null;
+        try {
+          return new RegExp(raw, 'i');
+        } catch {
+          return null;
+        }
+      }
+
+      function populateVoices() {
+        const allVoices = synth.getVoices();
+        const matcher = getVoiceMatcher();
+        const filteredVoices = matcher
+          ? allVoices.filter((voice) => matcher.test(`${voice.name} ${voice.lang} ${voice.voiceURI}`))
+          : allVoices;
+        voices = filteredVoices;
+        voiceSelect.innerHTML = '';
+        voices.forEach((voice, idx) => {
+          const option = document.createElement('option');
+          option.value = String(idx);
+          option.textContent = `${voice.name} (${voice.lang})`;
+          voiceSelect.appendChild(option);
+        });
+        voicesOutput.value = voices.map((v, i) => `${i}. ${v.name} | ${v.lang} | ${v.voiceURI}`).join('\n');
+        if (!voices.length && matcher) {
+          voicesOutput.value = '无匹配 voice';
+        }
+      }
+
+      function speak(text) {
+        if (synth.speaking) synth.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = langSelect.value;
+        utterance.rate = Number(rateInput.value) || 1;
+        utterance.pitch = Number(pitchInput.value) || 1;
+        const selected = voices[Number(voiceSelect.value)];
+        if (selected) utterance.voice = selected;
+        synth.speak(utterance);
+      }
+
+      document.getElementById('speak-wo3').onclick = () => speak('wo3');
+      document.getElementById('speak-wo').onclick = () => speak('wǒ');
+      document.getElementById('speak-wo-char').onclick = () => speak('我');
+      document.getElementById('speak-en').onclick = () => speak('hello');
+      document.getElementById('speak-custom').onclick = () => speak(customText.value);
+
+      voiceFilterInput.oninput = () => populateVoices();
+      clearFilterButton.onclick = () => {
+        voiceFilterInput.value = '';
+        populateVoices();
+      };
+      langSelect.onchange = () => populateVoices();
+      populateVoices();
+      if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = populateVoices;
+      }
+    </script>
+  </body>
+</html>

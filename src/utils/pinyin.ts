@@ -14,7 +14,7 @@ export function convertToPinyin(input: string, tone: number): string {
   // Tone: 0-4 (0 = neutral)
   
   // Replace v with ü for display/processing
-  let text = input.replace(/v/g, 'ü');
+  const text = input.replace(/v/g, 'ü');
 
   if (tone === 0) {
     return text;

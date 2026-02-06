@@ -14,6 +14,7 @@ function App() {
 
   // Voice State
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [showAllVoices, setShowAllVoices] = useState(false);
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>(() => {
     return localStorage.getItem('nightmemo_voice_uri') || '';
   });
@@ -31,6 +32,11 @@ function App() {
       window.speechSynthesis.onvoiceschanged = updateVoices;
     }
   }, []);
+
+  // Filter voices based on toggle
+  const filteredVoices = showAllVoices 
+    ? voices 
+    : voices.filter(v => v.lang === 'zh-CN' || v.voiceURI === selectedVoiceURI);
 
   // Update service and persist voice selection
   useEffect(() => {
@@ -128,8 +134,8 @@ function App() {
             
             <div className="space-y-4">
               {/* Voice Selector */}
-              <div className="space-y-1">
-                <label className="text-xs text-gray-500 block mb-1">Voice Selection</label>
+              <div className="space-y-2">
+                <label className="text-xs text-gray-500 block">Voice Selection</label>
                 <select 
                   value={selectedVoiceURI}
                   onChange={(e) => {
@@ -141,12 +147,25 @@ function App() {
                   className="w-full py-2 px-3 bg-gray-800 text-white text-sm rounded border border-gray-700 focus:outline-none focus:border-blue-500"
                 >
                   <option value="">Default System Voice</option>
-                  {voices.map(v => (
+                  {filteredVoices.map(v => (
                     <option key={v.voiceURI} value={v.voiceURI}>
                       {v.name} ({v.lang})
                     </option>
                   ))}
                 </select>
+                
+                <div className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    id="show-all-voices"
+                    checked={showAllVoices}
+                    onChange={(e) => setShowAllVoices(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-500 focus:ring-offset-gray-900"
+                  />
+                  <label htmlFor="show-all-voices" className="text-sm text-gray-400 cursor-pointer">
+                    Show all voices (including non-Chinese)
+                  </label>
+                </div>
               </div>
 
               <button 

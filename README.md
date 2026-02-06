@@ -66,6 +66,44 @@ Night Memo 旨在让人们能够在完全黑暗的环境中（或闭眼状态下
 4.  **修改**:
     *   `Backspace`: 缓冲区有内容时删字符；缓冲区为空时删上一个词。
 
+## 拼音与 TTS 兼容性说明
+
+不同平台系统中 TTS 引擎的兼容性差异（输入格式上），可能会导致部分拼音无法正常朗读。我因为这个问题创建了 `playground/tts/index.html` 来测试不同平台上的 TTS 效果。如果要运行的话，需要先运行一个本地服务器，例如使用 `python -m http.server 8000` 来启动一个简单的 HTTP 服务器，然后在浏览器中访问 `http://localhost:8000/playground/tts/`。
+
+下面是经过测试的一些平台上 TTS 的细节：
+
+### MacOS
+
+苹果系统中间，Safari 并不会暴露所有语音，只会根据用户的系统设置，选出一些“效果最好”的一个子集，呈现给 Web 端。比如，调用 `SpeechSynthesis.getVoices()` 时，返回的可能是下面一个子集：
+
+<details>
+<summary>点击查看完整列表</summary>
+
+| 序号 | 语音名称 | 语种 | 语音 ID |
+| --- | --- | --- | --- |
+| 0 | Eddy | zh-CN | com.apple.eloquence.zh-CN.Eddy 
+| 1 | Shelley | zh-CN | com.apple.eloquence.zh-CN.Shelley 
+| 2 | Grandma | zh-CN | com.apple.eloquence.zh-CN.Grandma 
+| 3 | Reed | zh-CN | com.apple.eloquence.zh-CN.Reed 
+| 4 | Grandpa | zh-CN | com.apple.eloquence.zh-CN.Grandpa 
+| 5 | Rocko | zh-CN | com.apple.eloquence.zh-CN.Rocko 
+| 6 | Flo | zh-CN | com.apple.eloquence.zh-CN.Flo 
+| 7 | Tingting | zh-CN | com.apple.voice.compact.zh-CN.Tingting 
+| 8 | Sandy | zh-CN | com.apple.eloquence.zh-CN.Sandy 
+| 9 | Tingting | zh-CN | com.apple.voice.compact.zh-CN.Tingting 
+
+</details>
+
+Apple（MacOS 13+）的语音大致分为两种：
+
+- Eloquence 系：这些语音的 ID 以 `com.apple.eloquence` 开头，是一套独立的语音集，可能和 NVDA 的 [Eloquence](https://blindhelp.net/software/eloquence) 有一定的关系；
+- Siri 系：这些语音的 ID 以 `com.apple.voice.<compact/enhanced/premium>` 开头，苹果的 Siri 使用的也是该语音集；
+
+这两种对于中文拼音输入的支持是不一样的（体现在调用 `synth.speak()` 时的格式）：
+
+- Eloquence 系：「ü」用「uu」表示（本来就可以省略为「u」的仍为「u」），轻声用数字 0 表示；例「吃了绿色圆圈被辣到了」`chi1le0luu4se4yuan2quan1bei4la4dao4le0`；
+- Siri 系：「ü」用「u」表示，轻声用数字 5 表示；例「吃了绿色圆圈被辣到了」`chi1le5lv4se4yuan2quan1bei4la4dao4le5`；
+
 ## 📄 License
 
 MIT

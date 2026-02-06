@@ -1,6 +1,9 @@
+import { formatTTSContent, type TTSPayload } from './ttsFormatter';
+
 class AudioService {
   private audioContext: AudioContext | null = null;
   private synth: SpeechSynthesis = window.speechSynthesis;
+  private selectedVoice: SpeechSynthesisVoice | null = null;
 
   private initContext() {
     if (!this.audioContext) {
@@ -71,14 +74,39 @@ class AudioService {
 
   // --- TTS ---
 
-  public speak(text: string, lang: 'zh-CN' | 'en-US' = 'zh-CN') {
+  public getVoices(): SpeechSynthesisVoice[] {
+    return this.synth.getVoices();
+  }
+
+  public setVoice(voiceURI: string) {
+    const voices = this.getVoices();
+    const voice = voices.find(v => v.voiceURI === voiceURI);
+    if (voice) {
+      this.selectedVoice = voice;
+    }
+  }
+
+  public format(payload: TTSPayload): string {
+    const voiceURI = this.selectedVoice ? this.selectedVoice.voiceURI : '';
+    return formatTTSContent(payload, voiceURI);
+  }
+
+  public speak(payload: string | TTSPayload, lang: 'zh-CN' | 'en-US' = 'zh-CN') {
     if (this.synth.speaking) {
       this.synth.cancel();
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    const voiceURI = this.selectedVoice ? this.selectedVoice.voiceURI : '';
+    const textToSpeak = formatTTSContent(payload, voiceURI);
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.lang = lang;
     utterance.rate = 1.0;
+    
+    if (this.selectedVoice) {
+      utterance.voice = this.selectedVoice;
+    }
+
     this.synth.speak(utterance);
   }
 }

@@ -74,7 +74,7 @@ Night Memo 旨在让人们能够在完全黑暗的环境中（或闭眼状态下
 
 ### MacOS
 
-苹果系统中间，Safari 并不会暴露所有语音，只会根据用户的系统设置，选出一些“效果最好”的一个子集，呈现给 Web 端。比如，调用 `SpeechSynthesis.getVoices()` 时，返回的可能是下面一个子集：
+
 
 <details>
 <summary>点击查看完整列表</summary>

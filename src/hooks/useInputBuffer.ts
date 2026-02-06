@@ -74,12 +74,12 @@ export const useInputBuffer = () => {
         setBuffer('');
         audioService.playConfirmPinyinSound();
         
-        // Speak: Use "raw pinyin + digit" (e.g. "hao3") for TTS, but handle 'v' -> 'ü'
-        // This ensures the TTS engine pronounces the correct tone as per user feedback,
-        // while solving the issue where 'v' isn't pronounced as 'ü'.
-        const ttsPinyin = buffer.replace(/v/g, 'ü');
-        const ttsText = ttsPinyin + tone;
-        audioService.speak(ttsText, 'zh-CN');
+        // Speak using structured data
+        audioService.speak({
+          type: 'pinyin',
+          content: buffer,
+          tone: tone
+        }, 'zh-CN');
       }
       // 5-9: English Word
       else if (numKey >= 5 && numKey <= 9) {
@@ -93,7 +93,10 @@ export const useInputBuffer = () => {
         setTokens(prev => [...prev, newToken]);
         setBuffer('');
         audioService.playConfirmEnglishSound();
-        audioService.speak(buffer, 'en-US');
+        audioService.speak({
+          type: 'text',
+          content: buffer
+        }, 'en-US');
       }
       return;
     }
@@ -105,12 +108,19 @@ export const useInputBuffer = () => {
         e.preventDefault();
         const fullText = tokens.map(t => {
           if (t.type === 'pinyin' && t.tone !== undefined) {
-             return t.raw.replace(/v/g, 'ü') + t.tone + ' ';
+             return audioService.format({
+               type: 'pinyin',
+               content: t.raw,
+               tone: t.tone
+             }) + ' ';
           }
           return t.content;
         }).join('');
         // Use zh-CN to support mixed content reading, especially for pinyin tones
-        audioService.speak('Reading all: ' + fullText, 'zh-CN');
+        audioService.speak({
+          type: 'text',
+          content: 'Reading all: ' + fullText
+        }, 'zh-CN');
         return;
       }
       if (e.code === 'KeyL') {
@@ -120,9 +130,16 @@ export const useInputBuffer = () => {
           const last = tokens[tokens.length - 1];
           let textToRead = last.content;
           if (last.type === 'pinyin' && last.tone !== undefined) {
-             textToRead = last.raw.replace(/v/g, 'ü') + last.tone;
+             textToRead = audioService.format({
+               type: 'pinyin',
+               content: last.raw,
+               tone: last.tone
+             });
           }
-          audioService.speak('Last entry: ' + textToRead, 'zh-CN');
+          audioService.speak({
+            type: 'text',
+            content: 'Last entry: ' + textToRead
+          }, 'zh-CN');
         } else {
           audioService.playErrorSound();
         }
@@ -132,9 +149,9 @@ export const useInputBuffer = () => {
         // Read Status (Buffer)
         e.preventDefault();
         if (buffer) {
-          audioService.speak('Current buffer: ' + buffer);
+          audioService.speak({ type: 'text', content: 'Current buffer: ' + buffer });
         } else {
-          audioService.speak('Buffer empty');
+          audioService.speak({ type: 'text', content: 'Buffer empty' });
         }
         return;
       }

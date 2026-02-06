@@ -1,5 +1,4 @@
-提交规则
+Submission Rules
 
-1. 所有改动完成后自动提交
-2. 大改动必须先创建分支
-3. 大改动必须通过 Pull Request 合并
+1. Changed should be committed
+2. Major changes must first create a branch and then be merged via Pull Request

@@ -54,6 +54,13 @@
       <button id="speak-en">朗读 hello</button>
     </div>
     <div class="row">
+      <button id="speak-lv4">朗读 lǜ</button>
+      <button id="speak-lv4-raw">朗读 lv4</button>
+      <button id="speak-lv-char">朗读 绿</button>
+      <button id="speak-le">朗读 le</button>
+      <button id="speak-le-char">朗读 了</button>
+    </div>
+    <div class="row">
       <select id="lang">
         <option value="zh-CN">zh-CN</option>
         <option value="en-US">en-US</option>
@@ -129,6 +136,11 @@
       document.getElementById('speak-wo').onclick = () => speak('wǒ');
       document.getElementById('speak-wo-char').onclick = () => speak('我');
       document.getElementById('speak-en').onclick = () => speak('hello');
+      document.getElementById('speak-lv4').onclick = () => speak('lǜ');
+      document.getElementById('speak-lv4-raw').onclick = () => speak('lv4');
+      document.getElementById('speak-lv-char').onclick = () => speak('绿');
+      document.getElementById('speak-le').onclick = () => speak('le');
+      document.getElementById('speak-le-char').onclick = () => speak('了');
       document.getElementById('speak-custom').onclick = () => speak(customText.value);
 
       voiceFilterInput.oninput = () => populateVoices();
